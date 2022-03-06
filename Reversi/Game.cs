@@ -16,8 +16,8 @@ namespace Reversi
         {
             board = new Board();
             players = new Player[2];
-            players[0] = new Human(Color.Black, board);
-            players[1] = new Human(Color.White, board);
+            players[0] = new Human(DiskColor.Black, board);
+            players[1] = new CPU(DiskColor.White, board);
             turn = 0;
         }
 
@@ -28,21 +28,69 @@ namespace Reversi
 
         public void Start()
         {
+            Graphics.SetText("黒:" + players[0].CountDisk() + "  白:" + players[1].CountDisk());
             while (true)
             {
                 if (players[turn].PutDisk())
                 {
-                    turn = (turn + 1) % 2;
+                    Graphics.SetText("黒:" + players[0].CountDisk() + "  白:" + players[1].CountDisk());
+                    NextTurn();
+                    if (IsGameEnd())
+                    {
+                        break;
+                    }
                 }
             }
-
+            Graphics.AddLog("黒:" + players[0].CountDisk() + "   白:" + players[1].CountDisk());
         }
+
+        public void Init()
+        {
+            board = new Board();
+            players = new Player[2];
+            if(Option.turn == 0)
+            {
+                players[0] = new CPU(DiskColor.Black, board);
+                players[1] = new Human(DiskColor.White, board);
+            }
+            else if(Option.turn == 1)
+            {
+                players[0] = new Human(DiskColor.Black, board);
+                players[1] = new CPU(DiskColor.White, board);
+            }
+            else
+            {
+                players[0] = new Human(DiskColor.Black, board);
+                players[1] = new Human(DiskColor.White, board);
+            }
+            turn = 0;
+        }
+
+        private void NextTurn()
+        {
+            turn = (turn + 1) % 2;
+        }
+        private bool IsGameEnd()
+        {
+            if (players[turn].CanPut())
+            {
+                return false;
+            }
+            NextTurn();
+            if (players[turn].CanPut())
+            {
+                players[(turn + 1) % 2].Pass();
+                return false;
+            }
+            return true;
+        }
+
         public void Update()
         {
             board.Update();
         }
 
-        public void Print(Graphics g)
+        public void Print(System.Drawing.Graphics g)
         {
             board.Print(g);
         }

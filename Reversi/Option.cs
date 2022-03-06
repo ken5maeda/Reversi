@@ -6,17 +6,9 @@ using System.Threading.Tasks;
 
 namespace Reversi
 {
-    enum DiskColor
+    internal static class Option
     {
-        Black,
-        White,
-    }
-
-    enum SquareState
-    {
-        Black,
-        White,
-        CanPut,
-        None,
+        public static int turn = 1;
+        public static int level = 1;
     }
 }

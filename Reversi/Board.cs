@@ -19,11 +19,24 @@ namespace Reversi
         {
             disks = new Disk[64];
             bitBoard = new BitBoard(0x0000000810000000, 0x0000001008000000);
-            SetDisk(new SquareCoordinate(3, 3), Color.White);
-            SetDisk(new SquareCoordinate(4, 4), Color.White);
-            SetDisk(new SquareCoordinate(3, 4), Color.Black);
-            SetDisk(new SquareCoordinate(4, 3), Color.Black);
+            SetDisk(new SquareCoordinate(3, 3), DiskColor.White);
+            SetDisk(new SquareCoordinate(4, 4), DiskColor.White);
+            SetDisk(new SquareCoordinate(3, 4), DiskColor.Black);
+            SetDisk(new SquareCoordinate(4, 3), DiskColor.Black);
 
+        }
+
+        public int CountDisks(DiskColor color)
+        {
+            return bitBoard.CountDisks(color);
+        }
+
+        public int CountDisks()
+        {
+            int count = 0;
+            count += bitBoard.CountDisks(DiskColor.Black);
+            count += bitBoard.CountDisks(DiskColor.White);
+            return count;
         }
 
 
@@ -49,7 +62,7 @@ namespace Reversi
 
         public bool IsDiskFlipping()
         {
-            bool flag = true;
+            bool flag = false;
             foreach (Disk disk in disks)
             {
                 if(disk?.IsFlipping() ?? false)
@@ -111,40 +124,27 @@ namespace Reversi
             }
         }
 
-        public bool CanPutDisk(SquareCoordinate point, Color color)
+        public bool CanPutDisk(SquareCoordinate point, DiskColor color)
         {
-            if(color == Color.Black)
-            {
-                bitBoard.UpdateLegalMoves(0);
-            }
-            else
-            {
-                bitBoard.UpdateLegalMoves(1);
-            }
+            bitBoard.UpdateLegalMoves(color);
             return bitBoard.CanPutDisk(point);
         }
 
-        public bool CanPutAnyDisk()
+        public bool CanPutAnyDisk(DiskColor color)
         {
+            bitBoard.UpdateLegalMoves(color);
             return bitBoard.CanPutAnyDisk();
         }
 
-        private void SetDisk(SquareCoordinate point, Color color)
+        private void SetDisk(SquareCoordinate point, DiskColor color)
         {
             Disk disk = new Disk(point, color);
             disks[point.ToIndex()] = disk;
         }
 
-        public void PutDisk(SquareCoordinate point, Color color)
+        public void PutDisk(SquareCoordinate point, DiskColor color)
         {
-            if (color == Color.Black)
-            {
-                bitBoard.PutDisk(point, 0);
-            }
-            else
-            {
-                bitBoard.PutDisk(point, 1);
-            }
+            bitBoard.PutDisk(point, (int)color);
             Disk disk = new Disk(point, color);
             disks[point.ToIndex()] = disk;
 
@@ -192,7 +192,7 @@ namespace Reversi
 
         }
 
-        public void Print(Graphics g)
+        public void Print(System.Drawing.Graphics g)
         {
             SolidBrush brush = new SolidBrush(Color.Green);
             g.FillRectangle(brush, 0, 0, 640, 640);

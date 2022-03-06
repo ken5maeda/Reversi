@@ -8,24 +8,48 @@ namespace Reversi
 {
     abstract class Player
     {
-        protected Color color;
+        protected DiskColor color;
         protected Board board;
 
-        public Player(Color color, Board board)
+        public Player(DiskColor color, Board board)
         {
-            if (color != Color.White && color != Color.Black)
-            {
-                throw new ArgumentOutOfRangeException();
-            }
             this.color = color;
             this.board = board;
         }
+
+        public bool CanPut()
+        {
+            return this.board.CanPutAnyDisk(this.color);
+        }
+
+        public int CountDisk()
+        {
+            return board.CountDisks(color);
+        }
+
+        public void Pass()
+        {
+            Graphics.AddLog(color.ToJapaneseString() + ":パス");
+        }
+
+        protected void AddLog(SquareCoordinate putPosition)
+        {
+            if(this.color == DiskColor.White)
+            {
+                Graphics.AddLog(color.ToJapaneseString() + ":" + putPosition.ToString() + "\r\n");
+            }
+            else
+            {
+                Graphics.AddLog(color.ToJapaneseString() + ":" + putPosition.ToString() + "     ");
+            }
+        }
+
         public abstract bool PutDisk();
     }
 
     class Human : Player
     {
-        public Human(Color color, Board board) : base(color, board)
+        public Human(DiskColor color, Board board) : base(color, board)
         {
             ;
         }
@@ -37,11 +61,16 @@ namespace Reversi
             {
                 return false;
             }
-            if(Mouse.mousePoint.X > 0 && Mouse.mousePoint.X < 640 && Mouse.mousePoint.Y > 0 && Mouse.mousePoint.Y < 640)
+            if (!board.CanPutAnyDisk(this.color))
+            {
+                return false;
+            }
+            if (Mouse.mousePoint.X > 0 && Mouse.mousePoint.X < 640 && Mouse.mousePoint.Y > 0 && Mouse.mousePoint.Y < 640)
             {
                 SquareCoordinate coordinate = new SquareCoordinate(Mouse.mousePoint.X / 80, Mouse.mousePoint.Y / 80);
                 if (board.CanPutDisk(coordinate, this.color))
                 {
+                    AddLog(coordinate);
                     board.PutDisk(coordinate, this.color);
                     Mouse.mousePoint = new Point(-1, -1);
                     return true;
@@ -53,7 +82,7 @@ namespace Reversi
 
     class CPU : Player
     {
-        public CPU(Color color, Board board) : base(color, board)
+        public CPU(DiskColor color, Board board) : base(color, board)
         {
             ;
         }
@@ -65,43 +94,20 @@ namespace Reversi
                 return false;
             }
 
-            if (!board.CanPutAnyDisk())
+            if (!board.CanPutAnyDisk(this.color))
             {
                 return false;
             }
-            board.PutDisk(new SquareCoordinate(1, 2), base.color);
-            return false;
-        }
 
-        private void CalcPutPosition()
-        {
-            UInt64 player, opponent;
-            if (base.color == Color.Black)
-            {
-                (player, opponent) = board.GetDisks(0);
-            }
-            else
-            {
-                (player, opponent) = board.GetDisks(1);
-            }
+            int turn = board.CountDisks();
 
             CPUAlgorithm cpuAlgorithm = new CPUAlgorithm();
-
-            UInt64 legalMoves = CPUAlgorithm.GetLegalMoves(player, opponent);
-            UInt64 put;
-            int max_score = -100000000;
-            for(int i = 0; i < 64; i++)
-            {
-                UInt64 tempPut = legalMoves & (1UL << i);
-                if (tempPut != 0)
-                {
-                    int score = cpuAlgorithm.negaAlpha(player, opponent, 5, -1000, 1000);
-                    if(max_score < score)
-                    {
-
-                    }
-                }
-            }
+            UInt64 player, opponent;
+            (player, opponent) = board.GetDisks(color.ToInt());
+            UInt64 put = cpuAlgorithm.negaMax(player, opponent, 7, turn);
+            board.PutDisk(BBoard.Index2Coordinate(put), base.color);
+            AddLog(BBoard.Index2Coordinate(put));
+            return true;
         }
     }
 

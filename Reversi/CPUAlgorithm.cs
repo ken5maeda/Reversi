@@ -9,275 +9,158 @@ namespace Reversi
     internal class CPUAlgorithm
     {
 		int nodeNum, leafNum;
-		static public UInt64 GetLegalMoves(UInt64 player, UInt64 opponent)
-		{
-			UInt64 blank = ~(player | opponent);
 
-			// 左側方向の処理
-			UInt64 o = opponent & 0x7e7e7e7e7e7e7e7e;
-			UInt64 t = o & (player << 1);
-			t |= o & (t << 1);
-			t |= o & (t << 1);
-			t |= o & (t << 1);
-			t |= o & (t << 1);
-			t |= o & (t << 1);
-			UInt64 legalMoves = blank & (t << 1);
-
-			// 右方向の処理
-			t = o & (player >> 1);
-			t |= o & (t >> 1);
-			t |= o & (t >> 1);
-			t |= o & (t >> 1);
-			t |= o & (t >> 1);
-			t |= o & (t >> 1);
-			legalMoves |= blank & (t >> 1);
-
-			// 上方向の処理
-			o = opponent & 0x00ffffffffffff00;
-			t = o & (player << 8);
-			t |= o & (t << 8);
-			t |= o & (t << 8);
-			t |= o & (t << 8);
-			t |= o & (t << 8);
-			t |= o & (t << 8);
-			legalMoves |= blank & (t << 8);
-
-			// 下方向の処理
-			t = o & (player >> 8);
-			t |= o & (t >> 8);
-			t |= o & (t >> 8);
-			t |= o & (t >> 8);
-			t |= o & (t >> 8);
-			t |= o & (t >> 8);
-			legalMoves |= blank & (t >> 8);
-
-			// 左上方向の処理
-			o = opponent & 0x007e7e7e7e7e7e00;
-			t = o & (player << 9);
-			t |= o & (t << 9);
-			t |= o & (t << 9);
-			t |= o & (t << 9);
-			t |= o & (t << 9);
-			t |= o & (t << 9);
-			legalMoves |= blank & (t << 9);
-
-			// 右上方向の処理
-			t = o & (player << 7);
-			t |= o & (t << 7);
-			t |= o & (t << 7);
-			t |= o & (t << 7);
-			t |= o & (t << 7);
-			t |= o & (t << 7);
-			legalMoves |= blank & (t << 7);
-
-			// 左下方向の処理
-			t = o & (player >> 7);
-			t |= o & (t >> 7);
-			t |= o & (t >> 7);
-			t |= o & (t >> 7);
-			t |= o & (t >> 7);
-			t |= o & (t >> 7);
-			legalMoves |= blank & (t >> 7);
-
-			// 右下方向の処理
-			t = o & (player >> 9);
-			t |= o & (t >> 9);
-			t |= o & (t >> 9);
-			t |= o & (t >> 9);
-			t |= o & (t >> 9);
-			t |= o & (t >> 9);
-			legalMoves |= blank & (t >> 9);
-
-			return legalMoves;
-		}
-
-		UInt64 putDisc(UInt64 player, UInt64 opponent, UInt64 put)
-		{
-			// 左側方向の処理
-			UInt64 o = opponent & 0x7e7e7e7e7e7e7e7e;
-			UInt64 flips = 0, rec = 0, t = put << 1;
-			while ((t & o) != 0)
-			{
-				rec |= t;
-				t <<= 1;
-			}
-			if ((t & player) != 0)
-			{
-				flips |= rec;
-			}
-			rec = 0;
-
-			// 右方向の処理
-			t = put >> 1;
-			while ((t & o) != 0)
-			{
-				rec |= t;
-				t >>= 1;
-			}
-			if ((t & player) != 0)
-			{
-				flips |= rec;
-			}
-			rec = 0;
-
-			// 上方向の処理
-			o = opponent & 0x00ffffffffffff00;
-			t = put << 8;
-			while ((t & o) != 0)
-			{
-				rec |= t;
-				t <<= 8;
-			}
-			if ((t & player) != 0)
-			{
-				flips |= rec;
-			}
-			rec = 0;
-
-			// 下方向の処理
-			t = put >> 8;
-			while ((t & o) != 0)
-			{
-				rec |= t;
-				t >>= 8;
-			}
-			if ((t & player) != 0)
-			{
-				flips |= rec;
-			}
-			rec = 0;
-
-			// 左上方向の処理
-			o = opponent & 0x007e7e7e7e7e7e00;
-			t = put << 9;
-			while ((t & o) != 0)
-			{
-				rec |= t;
-				t <<= 9;
-			}
-			if ((t & player) != 0)
-			{
-				flips |= rec;
-			}
-			rec = 0;
-
-			// 右上方向の処理
-			t = put << 7;
-			while ((t & o) != 0)
-			{
-				rec |= t;
-				t <<= 7;
-			}
-			if ((t & player) != 0)
-			{
-				flips |= rec;
-			}
-			rec = 0;
-
-			// 左下方向の処理
-			t = put >> 7;
-			while ((t & o) != 0)
-			{
-				rec |= t;
-				t >>= 7;
-			}
-			if ((t & player) != 0)
-			{
-				flips |= rec;
-			}
-			rec = 0;
-
-			// 右下方向の処理
-			t = put >> 9;
-			while ((t & o) != 0)
-			{
-				rec |= t;
-				t >>= 9;
-			}
-			if ((t & player) != 0)
-			{
-				flips |= rec;
-			}
-
-			return flips;
-		}
-
-		private int CountDisks(UInt64 bit)
-        {
-			bit = (bit & 0x5555555555555555) + (bit >> 1 & 0x5555555555555555);
-			bit = (bit & 0x3333333333333333) + (bit >> 2 & 0x3333333333333333);
-			bit = (bit & 0x0f0f0f0f0f0f0f0f) + (bit >> 4 & 0x0f0f0f0f0f0f0f0f);
-			bit = (bit & 0x00ff00ff00ff00ff) + (bit >> 8 & 0x00ff00ff00ff00ff);
-			bit = (bit & 0x0000ffff0000ffff) + (bit >> 16 & 0x0000ffff0000ffff);
-			bit = (bit & 0x00000000ffffffff) + (bit >> 32 & 0x00000000ffffffff);
-
-			return (int)bit;
-		}
+		delegate int Evaluate(UInt64 playerDiscs, UInt64 opponentDiscs);
 
 		int eval(UInt64 playerDiscs, UInt64 opponentDiscs)
 		{
 			int eval = 0;
 
-			//eval += corner[playerDiscs & 0x8100000000000081];
-			//eval -= corner[opponentDiscs & 0x8100000000000081];
-			eval += CountDisks(playerDiscs & 0x8100000000000081) * 20;
-			eval -= CountDisks(opponentDiscs & 0x8100000000000081) * 20;
-			eval += CountDisks(playerDiscs);
-			//eval -= eva(opponentDiscs);
-			UInt64 legalMoves = GetLegalMoves(playerDiscs, opponentDiscs);
-			//eval += countDiscs(legalMoves);
-			eval += CountDisks(legalMoves) * 5;
-			legalMoves = GetLegalMoves(opponentDiscs, playerDiscs);
-			//eval -= countDiscs(legalMoves);
-			eval -= CountDisks(legalMoves) * 5;
+			eval += BBoard.CountDisks(playerDiscs & 0x8100000000000081) * 50;
+			eval -= BBoard.CountDisks(opponentDiscs & 0x8100000000000081) * 50;
+			eval += BBoard.CountDisks(playerDiscs);
+			eval -= BBoard.CountDisks(opponentDiscs);
+			UInt64 legalMoves = BBoard.GetLegalMoves(playerDiscs, opponentDiscs);
+			eval += BBoard.CountDisks(legalMoves) * 5;
+			legalMoves = BBoard.GetLegalMoves(opponentDiscs, playerDiscs);
+			eval -= BBoard.CountDisks(legalMoves) * 5;
 			return eval;
 		}
 
-		public int negaAlpha(UInt64 playerDiscs, UInt64 opponentDiscs, int depth, int alpha, int beta)
+		int evalEnd(UInt64 playerDiscs, UInt64 opponentDiscs)
 		{
-			nodeNum++;
-			if (depth == 0)
+			int eval = 0;
+			eval += BBoard.CountDisks(playerDiscs);
+			eval -= BBoard.CountDisks(opponentDiscs);
+			return eval;
+		}
+
+		public int innerNegaMax(UInt64 playerDiscs, UInt64 opponentDiscs, int depth, bool isBeforePass)
+		{
+			UInt64 legalMoves = BBoard.GetLegalMoves(playerDiscs, opponentDiscs);
+
+			if (depth == 0 || (legalMoves == 0 && isBeforePass))
 			{
-				leafNum++;
 				return eval(playerDiscs, opponentDiscs);
 			}
 
-			UInt64 legalMoves = GetLegalMoves(playerDiscs, opponentDiscs);
-
-			if (legalMoves != 0)
+			if (legalMoves == 0)
 			{
-				legalMoves = GetLegalMoves(opponentDiscs, playerDiscs);
-				if (legalMoves != 0)
-				{
-					leafNum++;
-					return eval(playerDiscs, opponentDiscs);
-				}
-				return -negaAlpha(opponentDiscs, playerDiscs, depth, -beta, -alpha);
+				return -innerNegaMax(opponentDiscs, playerDiscs, depth - 1, true);
 			}
 
-			int score;
-			UInt64 put = 1;
-			///*
+			int max_score = -1000;
 			for (int i = 0; i < 64; i++)
 			{
-				if ((put & legalMoves) != 0)
+				UInt64 put = legalMoves & (1UL << i);
+				if (put != 0)
 				{
-					UInt64 flips = putDisc(playerDiscs, opponentDiscs, put);
-					score = -negaAlpha(opponentDiscs ^ flips, playerDiscs ^ (put | flips), depth - 1, -beta, -alpha);
-
-					if (score >= beta)
+					UInt64 flips = BBoard.PutDisk(playerDiscs, opponentDiscs, put);
+					int score = -innerNegaMax(opponentDiscs ^ flips, playerDiscs ^ (put | flips), depth - 1, false);
+					if (max_score < score)
 					{
-						return score;
-					}
-					if (alpha < score)
-					{
-						alpha = score;
+						max_score = score;
 					}
 				}
-				put <<= 1;
+			}
+			return max_score;
+		}
+
+		private int innerNegaAlpha(UInt64 playerDiscs, UInt64 opponentDiscs, int depth, int turn, int alpha, int beta, bool isBeforePass)
+		{
+			UInt64 legalMoves = BBoard.GetLegalMoves(playerDiscs, opponentDiscs);
+			if (depth == 0 || (legalMoves == 0 && isBeforePass))
+			{
+				return eval(playerDiscs, opponentDiscs);
+			}
+
+			if (legalMoves == 0)
+			{
+				return -innerNegaAlpha(opponentDiscs, playerDiscs, depth - 1, turn + 1, -beta, -alpha, true);
+			}
+			for (int i = 0; i < 64; i++)
+			{
+				UInt64 put = legalMoves & (1UL << i);
+				if (put != 0)
+				{
+					UInt64 flips = BBoard.PutDisk(playerDiscs, opponentDiscs, put);
+					alpha = Math.Max(alpha, -innerNegaAlpha(opponentDiscs ^ flips, playerDiscs ^ (put | flips), depth - 1, turn + 1, -beta, -alpha, false));
+					if (alpha >= beta)
+					{
+						break;
+					}
+				}
 			}
 			return alpha;
-
 		}
+
+		private int innerNegaAlphaDelegate(UInt64 playerDiscs, UInt64 opponentDiscs, int depth, int turn, int alpha, int beta, bool isBeforePass, Evaluate evaluate)
+		{
+			UInt64 legalMoves = BBoard.GetLegalMoves(playerDiscs, opponentDiscs);
+			if (depth == 0 || (legalMoves == 0 && isBeforePass))
+			{
+				return evaluate(playerDiscs, opponentDiscs);
+			}
+
+			if (legalMoves == 0)
+			{
+				return -innerNegaAlphaDelegate(opponentDiscs, playerDiscs, depth - 1, turn + 1, -beta, -alpha, true, evaluate);
+			}
+			for (int i = 0; i < 64; i++)
+			{
+				UInt64 put = legalMoves & (1UL << i);
+				if (put != 0)
+				{
+					UInt64 flips = BBoard.PutDisk(playerDiscs, opponentDiscs, put);
+					alpha = Math.Max(alpha, -innerNegaAlphaDelegate(opponentDiscs ^ flips, playerDiscs ^ (put | flips), depth - 1, turn + 1, -beta, -alpha, false, evaluate));
+					if (alpha >= beta)
+					{
+						break;
+					}
+				}
+			}
+			return alpha;
+		}
+
+		public UInt64 negaMax(UInt64 playerDiscs, UInt64 opponentDiscs, int depth, int turn)
+		{
+			UInt64 legalMoves = BBoard.GetLegalMoves(playerDiscs, opponentDiscs);
+			if (legalMoves == 0)
+			{
+				return 0;
+			}
+
+			UInt64 put = 1;
+			int max_score = -10000;
+			Evaluate evaluate;
+			if(turn < 48)
+            {
+				evaluate = eval;
+			}
+            else
+            {
+				depth = 100;
+				evaluate = evalEnd;
+			}
+			for (int i = 0; i < 64; i++)
+			{
+				UInt64 tempPut = legalMoves & (1UL << i);
+				if (tempPut != 0)
+				{
+					UInt64 flips = BBoard.PutDisk(playerDiscs, opponentDiscs, tempPut);
+					//int score = innerMiniMax(opponentDiscs ^ flips, playerDiscs ^ (tempPut | flips), depth - 1, 1, false);
+					//int score = -innerNegaMax(opponentDiscs ^ flips, playerDiscs ^ (tempPut | flips), depth - 1, false);
+					//int score = -innerNegaAlpha(opponentDiscs ^ flips, playerDiscs ^ (tempPut | flips), depth - 1, 1, -10000, 10000, false);
+					int score = -innerNegaAlphaDelegate(opponentDiscs ^ flips, playerDiscs ^ (tempPut | flips), depth - 1, 1, -10000, 10000, false , evaluate);
+					if (max_score < score)
+					{
+						max_score = score;
+						put = tempPut;
+					}
+				}
+			}
+			return put;
+		}
+
 	}
 }

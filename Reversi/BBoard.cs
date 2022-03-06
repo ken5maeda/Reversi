@@ -4,68 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-
-
 namespace Reversi
 {
-    internal class BitBoard
+    internal class BBoard
     {
-        private UInt64[] disks;
-        private UInt64 legalMoves;
-        private UInt64 waitFlipping;
-
-        public BitBoard(UInt64 black, UInt64 white)
-        {
-            this.disks = new  UInt64[2];
-            this.disks[0] = black;
-            this.disks[1] = white;
-			this.waitFlipping = 0;
-			UpdateLegalMoves(0);
-		}
-
-		public int CountDisks(DiskColor color)
-        {
-			return BBoard.CountDisks(disks[color.ToInt()]);
-		}
-
-		public (UInt64 player, UInt64 opponent) GetDisks(int myColor)
+		static public UInt64 GetLegalMoves(UInt64 player, UInt64 opponent)
 		{
-			if (myColor == 0)
-			{
-				return (disks[0], disks[1]);
-			}
-			else
-			{
-				return (disks[1], disks[0]);
-			}
-		}
-
-		public bool IsWaitFlipping(int index)
-        {
-			return (waitFlipping & (1UL << index)) != 0;
-		}
-
-		public void CompleteFlip(int index)
-		{
-			waitFlipping ^= 1UL << index;
-		}
-
-
-		public void UpdateLegalMoves(DiskColor color)
-        {
-			UInt64 blank = ~(disks[0] | disks[1]);
-
-			UInt64 player, opponent;
-			if (color.ToInt() == 0)
-            {
-				player = disks[0];
-				opponent = disks[1];
-			}
-            else
-            {
-				player = disks[1];
-				opponent = disks[0];
-			}
+			UInt64 blank = ~(player | opponent);
 
 			// 左側方向の処理
 			UInt64 o = opponent & 0x7e7e7e7e7e7e7e7e;
@@ -142,36 +87,12 @@ namespace Reversi
 			t |= o & (t >> 9);
 			legalMoves |= blank & (t >> 9);
 
-			this.legalMoves = legalMoves;
+			return legalMoves;
 		}
 
-        public bool CanPutDisk(SquareCoordinate coordinate)
-        {
-            int index = coordinate.ToIndex();
-            return (this.legalMoves & (1UL << index)) != 0;
-        }
-
-        public bool CanPutAnyDisk()
-        {
-            return legalMoves != 0;
-        }
-
-		public void PutDisk(SquareCoordinate coordinate, int color)
-        {
-			UInt64 player, opponent;
-			if (color == 0)
-			{
-				player = disks[0];
-				opponent = disks[1];
-			}
-			else
-			{
-				player = disks[1];
-				opponent = disks[0];
-			}
-
+		static public UInt64 PutDisk(UInt64 player, UInt64 opponent, UInt64 put)
+		{
 			// 左側方向の処理
-			UInt64 put = 1UL << coordinate.ToIndex();
 			UInt64 o = opponent & 0x7e7e7e7e7e7e7e7e;
 			UInt64 flips = 0, rec = 0, t = put << 1;
 			while ((t & o) != 0)
@@ -277,25 +198,30 @@ namespace Reversi
 				flips |= rec;
 			}
 
-
-			player ^= (put | flips);
-			opponent ^= flips;
-
-			disks[0] = player;
-			disks[1] = opponent;
-
-			if (color == 0)
-			{
-				disks[0] = player;
-				disks[1] = opponent;
-			}
-			else
-			{
-				disks[1] = player;
-				disks[0] = opponent;
-			}
-
-			this.waitFlipping = flips;
+			return flips;
 		}
-    }
+
+		static public int CountDisks(UInt64 bit)
+		{
+			bit = (bit & 0x5555555555555555) + (bit >> 1 & 0x5555555555555555);
+			bit = (bit & 0x3333333333333333) + (bit >> 2 & 0x3333333333333333);
+			bit = (bit & 0x0f0f0f0f0f0f0f0f) + (bit >> 4 & 0x0f0f0f0f0f0f0f0f);
+			bit = (bit & 0x00ff00ff00ff00ff) + (bit >> 8 & 0x00ff00ff00ff00ff);
+			bit = (bit & 0x0000ffff0000ffff) + (bit >> 16 & 0x0000ffff0000ffff);
+			bit = (bit & 0x00000000ffffffff) + (bit >> 32 & 0x00000000ffffffff);
+
+			return (int)bit;
+		}
+
+		static public SquareCoordinate Index2Coordinate(UInt64 disk)
+		{
+			int i = 0;
+			while ((disk & 1UL << i) == 0)
+			{
+				i++;
+			}
+			return new SquareCoordinate(i % 8, i / 8);
+
+		}
+	}
 }

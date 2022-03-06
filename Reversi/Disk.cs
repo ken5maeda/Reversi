@@ -9,10 +9,10 @@ namespace Reversi
     internal class Disk
     {
         private SquareCoordinate coordinate;
-        private Color color;
+        private DiskColor color;
         private int flipState;
 
-        public Disk(SquareCoordinate coordinate, Color color)
+        public Disk(SquareCoordinate coordinate, DiskColor color)
         {
             this.coordinate = coordinate;
             this.color = color;
@@ -40,11 +40,11 @@ namespace Reversi
             {
                 flipState += 1;
             }
-            if(flipState == 30)
+            if(flipState == 15)
             {
                 ChangeColor();
             }
-            if(flipState == 60)
+            if(flipState == 30)
             {
                 flipState = 0;
             }
@@ -52,40 +52,34 @@ namespace Reversi
 
         private void ChangeColor()
         {
-            if(this.color == Color.White)
+            if(this.color == DiskColor.White)
             {
-                this.color = Color.Black;
+                this.color = DiskColor.Black;
             }
             else
             {
-                this.color = Color.White;
+                this.color = DiskColor.White;
             }
         }
 
-        public void Draw(Graphics g)
+        public void Draw(System.Drawing.Graphics g)
         {
             Pen pen = new Pen(Color.Black, 2);
             SolidBrush brush;
-            if (color == Color.Black)
-            {
-                brush = new SolidBrush(Color.Black);
-            }
-            else
-            {
-                brush = new SolidBrush(Color.White);
-            }
+            brush = new SolidBrush(color.ToColor());
 
             // (20, 20) から (200, 200) まで直線を描画
             int size = 80;
             Point center = new Point(this.coordinate.posX * size + size / 2, this.coordinate.posY * size + size / 2);
             Rectangle rectangle = RectangleCenter(
-                center, size * 4 / 5 * Math.Abs(30 - this.flipState) / 30, size * 4 / 5);
+                center, size * 4 / 5 * Math.Abs(15 - this.flipState) / 15, size * 4 / 5);
             g.FillEllipse(brush, rectangle);
             g.DrawEllipse(pen, rectangle);   // 楕円
 
 
             brush.Dispose();
             pen.Dispose();
+            //g.Dispose();
         }
 
         private Rectangle RectangleCenter(Point pos, int w, int h)

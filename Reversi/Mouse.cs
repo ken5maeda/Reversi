@@ -14,5 +14,10 @@ namespace Reversi
         {
             mousePoint = point;
         }
+
+        public static void ResetMousePoint()
+        {
+            mousePoint = new Point(-1, -1);
+        }
     }
 }
